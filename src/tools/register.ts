@@ -1791,6 +1791,8 @@ export function registerTools(
   registerBrokerTools(define.family("bandarmology", { evidence: "projected" }));
   registerCorpactionTools(define.family("corpaction", { evidence: "projected" }));
   registerScreenerTools(define.family("screener", { evidence: "projected" }));
+  // Gateway for the companion web app: raw exodus passthrough (whitelisted).
+  registerGatewayTools(define.family("market", { evidence: "observed" }));
   registerChartbitTools(define.family("chartbit", { evidence: "observed" }));
   registerTradingTools(define.family("trading", { evidence: "projected" }));
   registerEipoTools(define.family("eipo", { evidence: "projected" }));
