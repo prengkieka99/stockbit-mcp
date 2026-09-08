@@ -178,11 +178,30 @@ test("reports only the singleton files that were actually there", () => {
   assert.deepEqual(clearSingletonFiles(PROFILE), []);
 });
 
-test("removes a DANGLING SingletonLock — the state a crashed browser leaves", () => {
+test("removes a DANGLING SingletonLock — the state a crashed browser leaves", (t) => {
   // `SingletonLock` is a symlink whose target names a host and a pid. After a crash the target does
   // not exist, and `existsSync` FOLLOWS the link and answers false for exactly this case, so a
   // presence check written with it would skip the one file that matters.
-  symlinkSync("some-host-12345", join(PROFILE, "SingletonLock"));
+  try {
+    symlinkSync("some-host-12345", join(PROFILE, "SingletonLock"));
+  } catch (err) {
+    // Windows refuses symlink creation for a non-elevated user without Developer Mode, and CI's
+    // windows-latest runner is one such machine — this test failed there on every run, on every
+    // branch, unrelated to what was being changed.
+    //
+    // Skipping is honest rather than a dodge: Chromium only represents SingletonLock as a symlink
+    // on platforms that HAVE symlinks, so the dangling-link state asserted here cannot arise on a
+    // machine that cannot make one. The behaviour still matters and is still covered everywhere it
+    // can actually occur.
+    //
+    // Detected by ATTEMPTING the symlink rather than by testing `process.platform`, so a Windows
+    // box with Developer Mode enabled keeps running this instead of silently losing the coverage.
+    if ((err as NodeJS.ErrnoException).code === "EPERM") {
+      t.skip("this platform refuses symlink creation (Windows without Administrator or Developer Mode)");
+      return;
+    }
+    throw err;
+  }
   assert.equal(existsSync(join(PROFILE, "SingletonLock")), false, "precondition: existsSync cannot see it");
   assert.deepEqual(clearSingletonFiles(PROFILE), ["SingletonLock"]);
 });
