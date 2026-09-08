@@ -8,6 +8,30 @@ follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). Where an ent
 was **Observed**, it was read off a live response with a real account rather than inferred from a
 name; see [`CONTEXT.md`](CONTEXT.md) for the rest of the evidence ladder.
 
+## [1.3.1] — 2026-09-03
+
+### Security
+
+- **Cleared five Dependabot alerts by refreshing the lockfile.** `fast-uri` 3.1.5 → 3.1.7 and
+  `qs` 6.15.3 → 6.16.0, closing four High advisories — host confusion via percent-encoded scheme
+  normalization (`GHSA-jqff-g426-hqxp`), host confusion via skipped IDN canonicalization
+  (`GHSA-5jgf-p345-68v8`), SSRF via malformed IPv6 normalization (`GHSA-f65p-4m7j-42xc`), SSRF via
+  repeated hostname percent-decoding (`GHSA-fph4-wmhf-6fwf`) — and one Moderate, the `qs`
+  array-limit bypass via bracket-key comma parsing (`GHSA-x5fp-wj9c-mxmx`).
+
+  Neither package is a declared dependency: `fast-uri` arrives under `ajv` and `qs` under `express`
+  and `body-parser`, both by way of the MCP SDK. Both fixed versions already sat inside the ranges
+  those parents declare, so this was a lockfile refresh rather than an upgrade — `package.json` is
+  unchanged and no API surface moved.
+
+  **None of the five was reachable here**, and that was measured rather than assumed: an ESM resolve
+  hook recorded every package the server loads across `initialize`, `tools/list` and `tools/call`
+  with all tools registered, and the answer was `@modelcontextprotocol/sdk`, `ajv`, `ajv-formats`,
+  `zod`, `zod-to-json-schema`. `fast-uri` never loads even though `ajv` does — `ajv` only reaches
+  for it to resolve `$ref` URIs, and these schemas have none — and `qs`, `express` and
+  `body-parser` never load at all, because this is a stdio server and the SDK's HTTP transport is
+  dead code. Fixed anyway, because that argument expires the moment anyone runs the HTTP transport.
+
 ## [1.3.0] — 2026-09-02
 
 ### Added
