@@ -3,13 +3,6 @@
     { "source": "/", "destination": "/api/mcp" },
     { "source": "/(.*)", "destination": "/api/mcp" }
   ],
-  "functions": {
-    "api/mcp.ts": {
-      "maxDuration": 60
-    }
-  }
-}
-{
   "crons": [
     { "path": "/api/mcp", "schedule": "*/5 * * * *" }
   ]
