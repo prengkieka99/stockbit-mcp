@@ -95,7 +95,6 @@ export function registerGatewayTools(define: Definer): void {
         if (!allowed(m, path)) {
           throw new Error(`Path ${JSON.stringify(path.split("?")[0])} is not whitelisted for ${m}`);
         }
-        // Same authenticated session (and refresh chain) every other tool uses.
         const token = await ensureFresh("main");
         const hasBody = m !== "GET";
         const res = await fetch(HOSTS.exodus + path, {
@@ -114,9 +113,7 @@ export function registerGatewayTools(define: Definer): void {
         let parsed: unknown = text;
         try {
           parsed = text ? JSON.parse(text) : null;
-        } catch {
-          /* exodus answered with non-JSON (e.g. an error page) — pass the text through. */
-        }
+        } catch {}
         if (!res.ok) {
           const brief =
             typeof parsed === "string"
