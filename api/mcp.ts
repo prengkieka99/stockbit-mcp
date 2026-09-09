@@ -26,9 +26,6 @@ function sendJson(res: any, status: number, obj: unknown): void {
 }
 
 // Bootstrap refresh token + mirror ke Vercel KV (rotasi selamat lintas cold start).
-// Alur: STOCKBIT_REFRESH_TOKEN (satu kali input di env Vercel) -> bootstrap ke store ->
-// tiap refresh memutar token -> token terbaru di-mirror ke KV -> cold start berikutnya
-// pakai token KV (bukan env lama). Tanpa KV: fallback ke perilaku lama (access token env).
 const KV = (() => {
   const url = (process.env.KV_REST_API_URL || "").trim();
   const token = (process.env.KV_REST_API_TOKEN || "").trim();
@@ -136,7 +133,7 @@ export default async function handler(req: any, res: any): Promise<void> {
   try {
     if (!transport) {
       transport = new StreamableHTTPServerTransport({ sessionIdGenerator: () => randomUUID() });
-      const server = createServer(); // profile default (core tools)
+      const server = createServer();
       await server.connect(transport);
     }
     await transport.handleRequest(req, res, parsedBody);
@@ -144,6 +141,5 @@ export default async function handler(req: any, res: any): Promise<void> {
   } catch (err: any) {
     try { sendJson(res, 500, { error: "MCP handler error: " + (err?.message || String(err)) }); } catch {}
   }
-  // Simpan refresh token terbaru (hasil rotasi) ke KV — biar cold start tidak kehilangan chain.
   await mirrorStore();
 }
