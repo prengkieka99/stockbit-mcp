@@ -9,3 +9,8 @@
     }
   }
 }
+{
+  "crons": [
+    { "path": "/api/mcp", "schedule": "*/5 * * * *" }
+  ]
+}
